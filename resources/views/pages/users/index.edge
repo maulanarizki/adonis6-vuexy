@@ -1,0 +1,29 @@
+@layout('layouts/main')
+@section('body')
+  <h1>Users</h1>
+  <a href="{{ route('users.create') }}">Create New User</a>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @each(user in users)
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <a href="{{ route('users.edit', { id: user.id }) }}">Edit</a>
+            <form action="{{ route('users.destroy', { id: user.id }) }}?_method=DELETE" method="POST">
+              {{ csrfField() }}
+              <button type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      @end
+    </tbody>
+  </table>
+@endsection

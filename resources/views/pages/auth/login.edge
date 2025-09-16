@@ -1,0 +1,106 @@
+@layout.login()
+
+  @slot('meta')
+    <meta name="description" content="Login to your account to access the dashboard and manage your projects." />
+    <meta name="keywords" content="login, authentication, user access, dashboard" />
+    <meta name="author" content="Your Company Name" />
+  @endslot
+
+  @slot('main')
+    <div class="container-xxl">
+      <div class="authentication-wrapper authentication-basic container-p-y">
+        <div class="authentication-inner py-4">
+          <!-- Login -->
+          <div class="card">
+            <div class="card-body">
+              <!-- Logo -->
+              <div class="app-brand justify-content-center mb-4 mt-2">
+                <a href="index.html" class="app-brand-link gap-2">
+                  <span class="app-brand-logo demo">
+                    <!-- SVG Logo -->
+                  </span>
+                  <span class="app-brand-text demo text-body fw-bold ms-1">Vuexy</span>
+                </a>
+              </div>
+              <!-- /Logo -->
+    
+              <h4 class="mb-1 pt-2">Selamat Datang di Vuexy! 👋</h4>
+              <p class="mb-4">Silakan masuk ke akun Anda dan mulai petualangan</p>
+    
+              <form action="{{ route('auth.login.store') }}" method="POST">
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email atau Username</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="email"
+                    name="email"
+                    placeholder="Masukkan email atau username Anda"
+                    autofocus />
+                </div>
+                <div class="mb-3 form-password-toggle">
+                  <div class="d-flex justify-content-between">
+                    <label class="form-label" for="password">Password</label>
+                    <a href="auth-forgot-password-basic.html">
+                      <small>Lupa Password?</small>
+                    </a>
+                  </div>
+                  <div class="input-group input-group-merge">
+                    <input
+                      type="password"
+                      id="password"
+                      class="form-control"
+                      name="password"
+                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                      aria-describedby="password" />
+                    <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="remember-me" />
+                    <label class="form-check-label" for="remember-me"> Ingat Saya </label>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <button class="btn btn-primary d-grid w-100" type="submit">Masuk</button>
+                </div>
+              </form>
+    
+              <p class="text-center">
+                <span>Baru di platform kami?</span>
+                <a href="auth-register-basic.html">
+                  <span>Buat akun</span>
+                </a>
+              </p>
+    
+              <div class="divider my-4">
+                <div class="divider-text">atau</div>
+              </div>
+    
+              <div class="d-flex justify-content-center">
+                <a href="javascript:;" class="btn btn-icon btn-label-facebook me-3">
+                  <i class="tf-icons fa-brands fa-facebook-f fs-5"></i>
+                </a>
+    
+                <a href="javascript:;" class="btn btn-icon btn-label-google-plus me-3">
+                  <i class="tf-icons fa-brands fa-google fs-5"></i>
+                </a>
+    
+                <a href="javascript:;" class="btn btn-icon btn-label-twitter">
+                  <i class="tf-icons fa-brands fa-twitter fs-5"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+          <!-- /Login -->
+        </div>
+      </div>
+    </div>
+  @endslot
+
+  @slot('scripts')
+    {{-- Additional Scripts or JS --}}
+  @endslot
+
+@end
