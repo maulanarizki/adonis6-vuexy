@@ -1,4 +1,138 @@
+@layout.login()
 
-@layout('layouts/main')
-@section('body')
-@endsection
+    @slot('meta')
+        <meta name="description" content="Register to create a new account and access the dashboard." />
+        <meta name="keywords" content="register, sign up, user account, dashboard" />
+        <meta name="author" content="Your Company Name" />
+    @endslot
+
+    @slot('main')
+        <div class="container-xxl">
+            <div class="authentication-wrapper authentication-basic container-p-y">
+                <div class="authentication-inner py-4">
+                <!-- Register -->
+                <div class="card">
+                    <div class="card-body">
+                    <!-- Logo -->
+                    <div class="app-brand justify-content-center mb-4 mt-2">
+                        <a href="{{ route('home') }}" class="app-brand-link gap-2">
+                        <span class="app-brand-logo demo">
+                            <!-- SVG Logo -->
+                        </span>
+                        <span class="app-brand-text demo text-body fw-bold ms-1">Vuexy</span>
+                        </a>
+                    </div>
+                    <!-- /Logo -->
+
+                    <h4 class="mb-1 pt-2">Buat Akun Baru 🚀</h4>
+                    <p class="mb-4">Isi form di bawah untuk mendaftar</p>
+
+                    @if(flashMessages.get('errors'))
+                    <ul class="text-red-600 text-sm">
+                        @each(error in flashMessages.get('errors'))
+                        <li>{{ error.message }}</li>
+                        @end
+                    </ul>
+                    @end
+
+
+
+                    @error('E_BAD_CSRF_TOKEN')
+                        <p> {{ $message }} </p>
+                    @end
+
+                    <form action="{{ route('auth.register.store') }}" method="POST">
+                        {{ csrfField() }}
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                        <label for="full_name" class="form-label">Nama Lengkap <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="full_name"
+                            name="full_name"
+                            placeholder="Masukkan nama lengkap Anda"
+                            required
+                            autofocus />
+                        </div>
+
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="username"
+                            name="username"
+                            placeholder="Masukkan nama lengkap Anda"
+                            required
+                            autofocus />
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input
+                            type="email"
+                            class="form-control"
+                            id="email"
+                            name="email"
+                            placeholder="Masukkan email Anda"
+                            required />
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3 form-password-toggle">
+                            <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-merge">
+                            <input
+                                type="password"
+                                id="password"
+                                class="form-control"
+                                name="password"
+                                placeholder="Minimal 6 karakter"
+                                required />
+                            <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Konfirmasi Password -->
+                        <div class="mb-3 form-password-toggle">
+                            <label class="form-label" for="password_confirmation">Konfirmasi Password <span class="text-danger">*</span></label>
+                            <div class="input-group input-group-merge">
+                            <input
+                                type="password"
+                                id="password_confirmation"
+                                class="form-control"
+                                name="password_confirmation"
+                                placeholder="Ulangi password Anda"
+                                required />
+                            <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Daftar -->
+                        <div class="mb-3">
+                        <button class="btn btn-primary d-grid w-100" type="submit">Daftar</button>
+                        </div>
+                    </form>
+
+                    <p class="text-center">
+                        <span>Sudah punya akun?</span>
+                        <a href="{{ route('auth.login.show') }}">
+                        <span>Masuk</span>
+                        </a>
+                    </p>
+                    </div>
+                </div>
+                <!-- /Register -->
+                </div>
+            </div>
+        </div>
+    @endslot
+
+    @slot('scripts')
+        {{-- Additional Scripts or JS --}}
+    @endslot
+
+@end

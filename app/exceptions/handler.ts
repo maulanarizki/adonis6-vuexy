@@ -1,6 +1,7 @@
 import app from '@adonisjs/core/services/app'
 import { HttpContext, ExceptionHandler } from '@adonisjs/core/http'
 import type { StatusPageRange, StatusPageRenderer } from '@adonisjs/core/types/http'
+import { errors } from '@vinejs/vine'
 
 export default class HttpExceptionHandler extends ExceptionHandler {
   /**
@@ -34,6 +35,23 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
   async handle(error: unknown, ctx: HttpContext) {
+    /**
+     * Tangani error validasi dari VineJS
+     */
+    if (error instanceof errors.E_VALIDATION_ERROR) {
+      if (ctx.request.accepts(['html', 'json']) === 'json') {
+        return ctx.response.status(422).send({
+          message: 'Validasi gagal',
+          errors: error.messages,
+        })
+      }
+
+      // Kalau request HTML biasa, redirect back + kirim errors
+      ctx.session.flash('errors', error.messages)
+      ctx.session.flash('old', ctx.request.only(Object.keys(error.messages)))
+      return ctx.response.redirect().back()
+    }
+
     return super.handle(error, ctx)
   }
 

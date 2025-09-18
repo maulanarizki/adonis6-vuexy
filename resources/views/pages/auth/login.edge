@@ -15,7 +15,7 @@
             <div class="card-body">
               <!-- Logo -->
               <div class="app-brand justify-content-center mb-4 mt-2">
-                <a href="index.html" class="app-brand-link gap-2">
+                <a href="{{ route('home') }}" class="app-brand-link gap-2">
                   <span class="app-brand-logo demo">
                     <!-- SVG Logo -->
                   </span>
@@ -26,8 +26,15 @@
     
               <h4 class="mb-1 pt-2">Selamat Datang di Vuexy! 👋</h4>
               <p class="mb-4">Silakan masuk ke akun Anda dan mulai petualangan</p>
+
+              @error('E_BAD_CSRF_TOKEN')
+                <p class="text-danger"> {{ $message }} </p>
+              @end
     
               <form action="{{ route('auth.login.store') }}" method="POST">
+                {{ csrfField() }}
+
+                <!-- Email -->
                 <div class="mb-3">
                   <label for="email" class="form-label">Email atau Username</label>
                   <input
@@ -36,8 +43,11 @@
                     id="email"
                     name="email"
                     placeholder="Masukkan email atau username Anda"
+                    value=""
                     autofocus />
                 </div>
+
+                <!-- Password -->
                 <div class="mb-3 form-password-toggle">
                   <div class="d-flex justify-content-between">
                     <label class="form-label" for="password">Password</label>
@@ -51,17 +61,23 @@
                       id="password"
                       class="form-control"
                       name="password"
-                      placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                      placeholder="••••••••"
                       aria-describedby="password" />
-                    <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
+                    <span class="input-group-text cursor-pointer">
+                      <i class="ti ti-eye-off"></i>
+                    </span>
                   </div>
                 </div>
+
+                <!-- Remember Me -->
                 <div class="mb-3">
                   <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="remember-me" />
+                    <input class="form-check-input" type="checkbox" id="remember-me" name="remember" />
                     <label class="form-check-label" for="remember-me"> Ingat Saya </label>
                   </div>
                 </div>
+
+                <!-- Button -->
                 <div class="mb-3">
                   <button class="btn btn-primary d-grid w-100" type="submit">Masuk</button>
                 </div>
@@ -69,7 +85,7 @@
     
               <p class="text-center">
                 <span>Baru di platform kami?</span>
-                <a href="auth-register-basic.html">
+                <a href="{{ route('auth.register.show') }}">
                   <span>Buat akun</span>
                 </a>
               </p>
@@ -100,7 +116,33 @@
   @endslot
 
   @slot('scripts')
-    {{-- Additional Scripts or JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @if(flashMessages.get('success'))
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil!",
+            text: "{{ flashMessages.get('success') }}",
+            confirmButtonText: "OK"
+          })
+        })
+      </script>
+    @end
+
+    @if(flashMessages.get('errors'))
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          Swal.fire({
+            icon: "error",
+            title: "Login gagal",
+            text: "{{ flashMessages.get('errors').general }}",
+            confirmButtonText: "OK"
+          })
+        })
+      </script>
+    @end
   @endslot
 
 @end
