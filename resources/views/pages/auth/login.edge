@@ -27,8 +27,18 @@
               <h4 class="mb-1 pt-2">Selamat Datang di Vuexy! 👋</h4>
               <p class="mb-4">Silakan masuk ke akun Anda dan mulai petualangan</p>
 
+              @if(flashMessages.get('errors'))
+              <ul class="text-red-600 text-sm">
+                  @each(error in flashMessages.get('errors'))
+                  <li>{{ error.message }}</li>
+                  @end
+              </ul>
+              @end
+
+
+
               @error('E_BAD_CSRF_TOKEN')
-                <p class="text-danger"> {{ $message }} </p>
+                  <p> {{ $message }} </p>
               @end
     
               <form action="{{ route('auth.login.store') }}" method="POST">
@@ -125,19 +135,6 @@
             icon: "success",
             title: "Berhasil!",
             text: "{{ flashMessages.get('success') }}",
-            confirmButtonText: "OK"
-          })
-        })
-      </script>
-    @end
-
-    @if(flashMessages.get('errors'))
-      <script>
-        document.addEventListener("DOMContentLoaded", function () {
-          Swal.fire({
-            icon: "error",
-            title: "Login gagal",
-            text: "{{ flashMessages.get('errors').general }}",
             confirmButtonText: "OK"
           })
         })

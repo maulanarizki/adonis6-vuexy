@@ -1,0 +1,21 @@
+@layout.admin()
+
+    @slot('description')
+        <title>Dashboard | Your Company Name</title>
+        <meta name="description" content="Dashboard" />
+        <meta name="keywords" content="Dashboard" />
+    @endslot
+
+    @slot('meta')
+    @endslot
+
+    @slot('main')
+        <div class="row">
+            <h2>Selamat Datang, {{ auth.user.fullName }}</h2>
+        </div>
+    @endslot
+
+    @slot('scripts')
+    @endslot
+
+@end
