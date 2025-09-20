@@ -17,18 +17,20 @@ export default class LoginController {
   //   return ctx.response.redirect().toRoute('dashboard.index')
   // }
 
-  async store({ request, response, session }: HttpContext) {
-    // const userByUsername = await User.findBy('username', request.input('email'))
-    // dd(userByUsername)
-    try {
-      await this.authService.login(request.all())
+  async store(ctx: HttpContext) {
+    const { request, response, session } = ctx
 
-      // Flash sukses
+    try {
+      // validasi input
+      const data = await request.validateUsing(loginValidator)
+
+      // panggil AuthService dengan ctx dan data
+      await this.authService.login(ctx, data)
+
       session.flash('success', 'Login berhasil!')
       return response.redirect().toRoute('dashboard.index')
     } catch (error) {
       if (error.messages) {
-        // VineJS error -> ambil messages array
         session.flash('errors', error.messages)
       } else {
         session.flash('errors', [
