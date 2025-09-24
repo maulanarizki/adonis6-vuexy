@@ -1,5 +1,6 @@
 import UserService from '#app/domains/user/services/user_service'
 import { HttpContext } from '@adonisjs/core/http'
+import { dd } from '@adonisjs/core/services/dumper'
 
 export default class UsersController {
   protected userService = new UserService()

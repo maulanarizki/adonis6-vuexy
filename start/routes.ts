@@ -24,15 +24,15 @@ router.post('/logout', [LoginController, 'logout']).as('auth.logout').use(middle
 // User CRUD Routes (Protected)
 router
   .group(() => {
-    router.get('/users', [UsersController, 'index']).as('index')
-    router.get('/users/create', [UsersController, 'create']).as('create')
-    router.post('/users', [UsersController, 'store']).as('store')
-    router.get('/users/:id', [UsersController, 'show']).as('show')
-    router.get('/users/:id/edit', [UsersController, 'edit']).as('edit')
-    router.put('/users/:id', [UsersController, 'update']).as('update')
-    router.delete('/users/:id', [UsersController, 'destroy']).as('destroy')
+    router.get('/', [UsersController, 'index']).as('index')
+    router.get('/create', [UsersController, 'create']).as('create')
+    router.post('/store', [UsersController, 'store']).as('store')
+    router.get('/:id', [UsersController, 'show']).as('show')
+    router.get('/:id/edit', [UsersController, 'edit']).as('edit')
+    router.put('/update/:id', [UsersController, 'update']).as('update')
+    router.delete('/delete/:id', [UsersController, 'destroy']).as('destroy')
   })
-  .prefix('/admin')
+  .prefix('/users')
   .as('users')
   .use(middleware.auth())
 
