@@ -1,0 +1,21 @@
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-end">
+        {{-- Link ke halaman sebelumnya --}}
+        <li class="page-item {{ users.onFirstPage ? 'disabled' : '' }}">
+            <a class="page-link" href="{{ users.getPreviousPageUrl() || '#' }}">Previous</a>
+        </li>
+
+        {{-- Tampilkan nomor halaman --}}
+        @each(page in users.getUrlsForRange(1, users.lastPage))
+            <li class="page-item {{ page.isActive ? 'active' : '' }}">
+                {{-- page.url sekarang akan menghasilkan URL yang benar dan lengkap --}}
+                <a class="page-link" href="{{ page.url }}">{{ page.page }}</a>
+            </li>
+        @end
+        
+        {{-- Link ke halaman selanjutnya --}}
+        <li class="page-item {{ users.hasMorePages ? '' : 'disabled' }}">
+            <a class="page-link" href="{{ users.getNextPageUrl() || '#' }}">Next</a>
+        </li>
+    </ul>
+</nav>
