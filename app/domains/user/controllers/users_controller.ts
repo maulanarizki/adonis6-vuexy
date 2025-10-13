@@ -38,6 +38,39 @@ export default class UsersController {
     })
   }
 
+  async list({ view }: HttpContext) {
+    return view.render('pages/users/index2')
+  }
+
+  /**
+   * Handle DataTables ajax request
+   */
+  async data({ request, response }: HttpContext) {
+    const { draw, start, length, search, order } = request.qs()
+
+    const searchValue = search.value
+    // Pastikan untuk menangani kasus dimana order mungkin tidak ada
+    const orderByColumn = order ? request.qs().columns[order[0].column].data : 'id'
+    const orderDirection = order ? order[0].dir : 'asc'
+
+    const data = await this.userService.getForDataTable({
+      start: +start,
+      length: +length,
+      searchValue,
+      orderByColumn,
+      orderDirection,
+    })
+
+    console.log(data) // Objek ModelPaginator akan ditampilkan di sini
+
+    return response.json({
+      draw: +draw,
+      recordsTotal: data.total,
+      recordsFiltered: data.total, // Untuk saat ini, kita asumsikan jumlah total dan yang difilter sama
+      data: data.all(), // Gunakan .all() untuk mendapatkan array data dari paginator
+    })
+  }
+
   create({ view }: HttpContext) {
     return view.render('pages/users/create')
   }

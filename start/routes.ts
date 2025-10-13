@@ -25,6 +25,8 @@ router.post('/logout', [LoginController, 'logout']).as('auth.logout').use(middle
 router
   .group(() => {
     router.get('/', [UsersController, 'index']).as('index')
+    router.get('/list', [UsersController, 'list']).as('list')
+    router.get('/data', [UsersController, 'data']).as('data')
     router.get('/create', [UsersController, 'create']).as('create')
     router.post('/store', [UsersController, 'store']).as('store')
     router.get('/:id', [UsersController, 'show']).as('show')

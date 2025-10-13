@@ -4,6 +4,6 @@ import { UserFactory } from '../factories/user_factory.js'
 
 export default class UserSeeder extends BaseSeeder {
   async run() {
-    await UserFactory.createMany(50)
+    await UserFactory.createMany(10000)
   }
 }

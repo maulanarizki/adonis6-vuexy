@@ -8,18 +8,19 @@ import { ExtractModelRelations } from '@adonisjs/lucid/types/relations'
 
 export default class UserService {
   // Metode getAll yang sudah di-upgrade
-  async getAll(options: {
-    page?: number
-    limit?: number
-    sortBy?: string
-    sortOrder?: 'asc' | 'desc'
-    search?: string
-  }) {
+  async getAll(
+    options: {
+      page?: number
+      limit?: number
+      sortBy?: string
+      sortOrder?: 'asc' | 'desc'
+      search?: string
+    } = {}
+  ) {
     const { page = 1, limit = 10, sortBy = 'created_at', sortOrder = 'desc', search } = options
 
     const query = User.query()
 
-    // Terapkan pencarian jika ada
     if (search) {
       query.where((builder) => {
         builder
@@ -29,11 +30,38 @@ export default class UserService {
       })
     }
 
-    // Terapkan pengurutan
     query.orderBy(sortBy, sortOrder)
 
-    // Terapkan pagination
     return query.paginate(page, limit)
+  }
+
+  async getForDataTable(options: {
+    start: number
+    length: number
+    searchValue: string
+    orderByColumn: string
+    orderDirection: 'asc' | 'desc'
+  }) {
+    const { start, length, searchValue, orderByColumn, orderDirection } = options
+
+    const query = User.query()
+
+    // Pencarian
+    if (searchValue) {
+      query.where((builder) => {
+        builder
+          .where('full_name', 'like', `%${searchValue}%`)
+          .orWhere('username', 'like', `%${searchValue}%`)
+          .orWhere('email', 'like', `%${searchValue}%`)
+      })
+    }
+
+    // Pengurutan
+    query.orderBy(orderByColumn, orderDirection)
+
+    // Paginasi
+    const page = Math.floor(start / length) + 1
+    return query.paginate(page, length)
   }
 
   async findById(id: number) {
