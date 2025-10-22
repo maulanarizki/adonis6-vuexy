@@ -1,102 +1,116 @@
 import UserService from '#app/domains/user/services/user_service'
 import { HttpContext } from '@adonisjs/core/http'
+import { errors } from '@vinejs/vine'
 import router from '@adonisjs/core/services/router'
 import { dd } from '@adonisjs/core/services/dumper'
 
 export default class UsersController {
   protected userService = new UserService()
 
-  async index({ request, view }: HttpContext) {
+  async index({ view }: HttpContext) {
+    return view.render('pages/users/index')
+  }
+
+  async api({ request, response }: HttpContext) {
     const {
       page = 1,
       limit = 10,
-      sortBy = 'created_at',
-      sortOrder = 'desc',
       search = '',
+      sort = 'created_at',
+      direction = 'desc',
     } = request.qs()
 
-    const users = await this.userService.getAll({
+    const users = await this.userService.getAllGrid({
       page: Number(page),
       limit: Number(limit),
-      sortBy,
-      sortOrder,
+      sortBy: sort,
+      sortOrder: direction as 'asc' | 'desc',
       search,
     })
 
-    // --- PERBAIKAN DI SINI ---
-    // 1. Atur base URL untuk pagination. Menggunakan route() lebih aman.
-    users.baseUrl(router.makeUrl('users.index'))
-
-    // 2. Tambahkan query string yang ada (selain 'page') ke semua link pagination
-    //    agar sorting dan filter tetap aktif saat pindah halaman.
-    users.queryString({ sortBy, sortOrder, search })
-
-    return view.render('pages/users/index', {
-      users,
-      // queryParams tetap berguna untuk link sorting di header tabel
-      queryParams: { sortBy, sortOrder, search },
-    })
-  }
-
-  async list({ view }: HttpContext) {
-    return view.render('pages/users/index2')
+    const result = {
+      data: users.all(),
+      total: users.total,
+    }
+    return response.json(result)
   }
 
   /**
-   * Handle DataTables ajax request
+   * Mengambil data satu user untuk ditampilkan di modal edit.
    */
-  async data({ request, response }: HttpContext) {
-    const { draw, start, length, search, order } = request.qs()
-
-    const searchValue = search.value
-    // Pastikan untuk menangani kasus dimana order mungkin tidak ada
-    const orderByColumn = order ? request.qs().columns[order[0].column].data : 'id'
-    const orderDirection = order ? order[0].dir : 'asc'
-
-    const data = await this.userService.getForDataTable({
-      start: +start,
-      length: +length,
-      searchValue,
-      orderByColumn,
-      orderDirection,
-    })
-
-    console.log(data) // Objek ModelPaginator akan ditampilkan di sini
-
-    return response.json({
-      draw: +draw,
-      recordsTotal: data.total,
-      recordsFiltered: data.total, // Untuk saat ini, kita asumsikan jumlah total dan yang difilter sama
-      data: data.all(), // Gunakan .all() untuk mendapatkan array data dari paginator
-    })
+  async show({ params, response }: HttpContext) {
+    try {
+      const user = await this.userService.findById(params.id)
+      return response.ok({ success: true, data: user })
+    } catch (error) {
+      return response.status(404).json({ success: false, message: 'User not found.' })
+    }
   }
 
-  create({ view }: HttpContext) {
-    return view.render('pages/users/create')
-  }
-
+  /**
+   * Menyimpan user baru dari modal.
+   */
   async store({ request, response }: HttpContext) {
-    await this.userService.create(request.all())
-    return response.redirect().toRoute('users.index')
+    try {
+      const newUser = await this.userService.create(request.all())
+      return response.created({
+        success: true,
+        message: 'User berhasil ditambahkan!',
+        data: newUser,
+      })
+    } catch (error) {
+      if (error instanceof errors.E_VALIDATION_ERROR) {
+        return response.status(422).json({
+          success: false,
+          message: 'Validasi gagal.',
+          errors: error.messages,
+        })
+      }
+      return response.status(500).json({
+        success: false,
+        message: 'Terjadi kesalahan pada server.',
+      })
+    }
   }
 
-  async show({ params, view }: HttpContext) {
-    const user = await this.userService.findById(params.id)
-    return view.render('pages/users/show', { user })
-  }
-
-  async edit({ params, view }: HttpContext) {
-    const user = await this.userService.findById(params.id)
-    return view.render('pages/users/edit', { user })
-  }
-
+  /**
+   * Memperbarui user dari modal.
+   */
   async update({ params, request, response }: HttpContext) {
-    await this.userService.update(params.id, request.all())
-    return response.redirect().toRoute('users.index')
+    try {
+      const updatedUser = await this.userService.update(params.id, request.all())
+      return response.ok({
+        success: true,
+        message: 'User berhasil diperbarui!',
+        data: updatedUser,
+      })
+    } catch (error) {
+      if (error instanceof errors.E_VALIDATION_ERROR) {
+        return response.status(422).json({
+          success: false,
+          message: 'Validasi gagal.',
+          errors: error.messages,
+        })
+      }
+      return response
+        .status(500)
+        .json({ success: false, message: 'Terjadi kesalahan pada server.' })
+    }
   }
 
+  /**
+   * Menghapus user.
+   */
   async destroy({ params, response }: HttpContext) {
-    await this.userService.delete(params.id)
-    return response.redirect().back()
+    try {
+      await this.userService.delete(params.id)
+      return response.ok({ success: true, message: 'User berhasil dihapus!' })
+    } catch (error) {
+      // Handle jika user tidak ditemukan
+      if (error.code === 'E_ROW_NOT_FOUND') {
+        return response.status(404).json({ success: false, message: 'User tidak ditemukan.' })
+      }
+      return response.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' })
+    }
   }
 }

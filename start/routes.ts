@@ -4,6 +4,7 @@ import { middleware } from '#start/kernel'
 const RegisterController = () => import('#app/domains/auth/controllers/register_controller')
 const LoginController = () => import('#app/domains/auth/controllers/login_controller')
 const UsersController = () => import('#app/domains/user/controllers/users_controller')
+const UsersdatatableController = () => import('#app/domains/user/controllers/usersdatatable_controller')
 const DashboardController = () => import('#app/domains/dashboard/controllers/dashboard_controller')
 
 router.on('/').render('pages/home').as('home')
@@ -24,18 +25,33 @@ router.post('/logout', [LoginController, 'logout']).as('auth.logout').use(middle
 // User CRUD Routes (Protected)
 router
   .group(() => {
+    // gridjs 
     router.get('/', [UsersController, 'index']).as('index')
-    router.get('/list', [UsersController, 'list']).as('list')
-    router.get('/data', [UsersController, 'data']).as('data')
-    router.get('/create', [UsersController, 'create']).as('create')
-    router.post('/store', [UsersController, 'store']).as('store')
+    router.get('/api', [UsersController, 'api']).as('api')
+    // Rute CRUD yang lebih bersih (RESTful)
+    router.post('/', [UsersController, 'store']).as('store')
     router.get('/:id', [UsersController, 'show']).as('show')
-    router.get('/:id/edit', [UsersController, 'edit']).as('edit')
-    router.put('/update/:id', [UsersController, 'update']).as('update')
-    router.delete('/delete/:id', [UsersController, 'destroy']).as('destroy')
+    router.put('/:id', [UsersController, 'update']).as('update')
+    router.delete('/:id', [UsersController, 'destroy']).as('destroy')
   })
   .prefix('/users')
   .as('users')
+  .use(middleware.auth())
+
+router
+  .group(() => {
+    // datatable 
+    router.get('/', [UsersdatatableController, 'index']).as('index')
+    router.get('/data', [UsersdatatableController, 'data']).as('data')
+    router.get('/create', [UsersdatatableController, 'create']).as('create')
+    router.post('/store', [UsersdatatableController, 'store']).as('store')
+    router.get('/:id', [UsersdatatableController, 'show']).as('show')
+    router.get('/:id/edit', [UsersdatatableController, 'edit']).as('edit')
+    router.put('/update/:id', [UsersdatatableController, 'update']).as('update')
+    router.delete('/delete/:id', [UsersdatatableController, 'destroy']).as('destroy')
+  })
+  .prefix('/usersdatatable')
+  .as('usersdatatable')
   .use(middleware.auth())
 
 router

@@ -3,6 +3,7 @@ import {
   createUserValidator,
   updateUserValidator,
 } from '#app/domains/user/validators/user_validator'
+import { dd } from '@adonisjs/core/services/dumper'
 import { LucidModel } from '@adonisjs/lucid/types/model'
 import { ExtractModelRelations } from '@adonisjs/lucid/types/relations'
 
@@ -32,6 +33,32 @@ export default class UserService {
 
     query.orderBy(sortBy, sortOrder)
 
+    return query.paginate(page, limit)
+  }
+
+  async getAllGrid(
+    options: {
+      page?: number
+      limit?: number
+      sortBy?: string
+      sortOrder?: 'asc' | 'desc'
+      search?: string
+    } = {}
+  ) {
+    // ... implementasi yang ada sudah benar
+    const { page = 1, limit = 10, sortBy = 'created_at', sortOrder = 'desc', search } = options
+    const query = User.query()
+    // dd(search);
+    if (search) {
+      // dd(search);
+      query.where((builder) => {
+        builder
+          .where('full_name', 'LIKE', `%${search}%`)
+          .orWhere('username', 'LIKE', `%${search}%`)
+          .orWhere('email', 'LIKE', `%${search}%`)
+      })
+    }
+    query.orderBy(sortBy, sortOrder)
     return query.paginate(page, limit)
   }
 

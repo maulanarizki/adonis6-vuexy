@@ -1,112 +1,354 @@
 @layout.admin()
 
-    @slot('description')
-    <title>Daftar User | Your Company Name</title>
-    @endslot
+@slot('description')
+<title>Daftar User | Your Company Name</title>
+<link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+{{-- SweetAlert2 CSS --}}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<style>
+  /* Styling untuk pesan error validasi */
+  .invalid-feedback {
+    display: block;
+    width: 100%;
+    margin-top: .25rem;
+    font-size: .875em;
+    color: #dc3545;
+  }
+  .is-invalid {
+    border-color: #dc3545 !important;
+  }
+</style>
+@endslot
 
-    @slot('main')
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card shadow-sm rounded-4 border-0">
-                        <div class="card-body">
-                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                                <h4 class="fw-bold mb-0">Data Pengguna</h4>
-                                <a href="{{ route('users.create') }}" class="btn btn-primary">
-                                    <i class="fa fa-plus me-1"></i> Tambah Pengguna
-                                </a>
-                            </div>
-
-                            <!-- Form Pencarian -->
-                            <div class="mb-3">
-                                <form action="{{ route('users.index') }}" method="GET">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="Cari berdasarkan nama, username, atau email..." name="search" value="{{ queryParams.search || '' }}">
-                                        <button class="btn btn-outline-secondary" type="submit">Cari</button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
-                                    <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>
-                                            {{-- Link untuk sorting --}}
-                                            <a href="{{ route('users.index', { ...queryParams, sortBy: 'full_name', sortOrder: queryParams.sortBy === 'full_name' && queryParams.sortOrder === 'asc' ? 'desc' : 'asc' }) }}">
-                                                Full Name
-                                                {{-- Tampilkan ikon sort --}}
-                                                @if(queryParams.sortBy === 'full_name')
-                                                    <i class="fa fa-sort-{{ queryParams.sortOrder === 'asc' ? 'up' : 'down' }}"></i>
-                                                @endif
-                                            </a>
-                                        </th>
-                                        <th>
-                                             <a href="{{ route('users.index', { ...queryParams, sortBy: 'username', sortOrder: queryParams.sortBy === 'username' && queryParams.sortOrder === 'asc' ? 'desc' : 'asc' }) }}">
-                                                Username
-                                                 @if(queryParams.sortBy === 'username')
-                                                    <i class="fa fa-sort-{{ queryParams.sortOrder === 'asc' ? 'up' : 'down' }}"></i>
-                                                @endif
-                                            </a>
-                                        </th>
-                                        <th>Email</th>
-                                        <th>
-                                             <a href="{{ route('users.index', { ...queryParams, sortBy: 'created_at', sortOrder: queryParams.sortBy === 'created_at' && queryParams.sortOrder === 'asc' ? 'desc' : 'asc' }) }}">
-                                                Dibuat
-                                                 @if(queryParams.sortBy === 'created_at')
-                                                    <i class="fa fa-sort-{{ queryParams.sortOrder === 'asc' ? 'up' : 'down' }}"></i>
-                                                @endif
-                                            </a>
-                                        </th>
-                                        <th>Aksi</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {{-- Gunakan users.all() karena users adalah objek paginator --}}
-                                    @each(user in users.all())
-                                        <tr>
-                                        <td>{{ user.id }}</td>
-                                        <td>{{ user.fullName }}</td>
-                                        <td>{{ user.username }}</td>
-                                        <td>{{ user.email }}</td>
-                                        <td>{{ user.createdAt.toFormat('dd LLL yyyy HH:mm') }}</td>
-                                        <td>
-                                            <a href="{{ route('users.show', { id: user.id }) }}" class="btn btn-info btn-sm">Lihat</a>
-                                            <a href="{{ route('users.edit', { id: user.id }) }}" class="btn btn-warning btn-sm">Edit</a>
-                                            <form action="{{ route('users.destroy', { id: user.id }) + '?_method=DELETE' }}" method="POST" style="display:inline">
-                                            {{ csrfField() }}
-                                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus user?')">Hapus</button>
-                                            </form>
-                                        </td>
-                                        </tr>
-                                    @else
-                                        <tr>
-                                            <td colspan="6" class="text-center">Tidak ada data ditemukan.</td>
-                                        </tr>
-                                    @end
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <!-- Navigasi Pagination -->
-                            @if(users.hasPages)
-                            <div class="mt-3"></div>
-                                @include('components/pagination')
-                            </div>
-                            @endif
-
+@slot('main')   
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card shadow-sm rounded-4 border-0">
+                    <div class="card-body">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+                            <h4 class="fw-bold mb-0">Data Pengguna</h4>
+                            {{-- Tombol ini sekarang akan memicu modal --}}
+                            <button id="btn-add-user" class="btn btn-primary">
+                                <i class="fa fa-plus me-1"></i> Tambah Pengguna
+                            </button>
                         </div>
+                        <div id="grid-wrapper"></div>
                     </div>
                 </div>
             </div>
         </div>
-    @endslot
+    </div>
 
+    {{-- MODAL UNTUK CREATE DAN UPDATE USER --}}
+    <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalLabel">Form User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="user-form">
+                    <div class="modal-body">
+                        <input type="hidden" id="user-id" name="id">
+                        
+                        {{-- HAPUS BARIS DI BAWAH INI --}}
+                        {{-- <input type="hidden" id="form-method" name="_method"> --}}
 
-    @slot('scripts')
-    {{-- Jika Anda menggunakan FontAwesome untuk ikon sort --}}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    @endslot
+                        <div class="mb-3">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="fullName" name="fullName">
+                            <div class="invalid-feedback" id="fullName-error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                             <div class="invalid-feedback" id="username-error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                             <div class="invalid-feedback" id="email-error"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password">
+                            <small class="form-text text-muted" id="password-help">Kosongkan jika tidak ingin mengubah password.</small>
+                            <div class="invalid-feedback" id="password-error"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+@endslot
+
+@slot('scripts')
+<script src="https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="module">
+  const { Grid, html } = gridjs;
+
+  // Helper untuk notifikasi (tidak berubah)
+  const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer)
+          toast.addEventListener('mouseleave', Swal.resumeTimer)
+      }
+  });
+
+  // Helper untuk mengambil CSRF token (tidak berubah)
+  const getCsrfToken = () => document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  const gridColumns = [
+          { id: 'id', name: 'ID', sort: true },
+          { id: 'fullName', name: 'Full Name', sort: true },
+          { id: 'username', name: 'Username', sort: true },
+          { id: 'email', name: 'Email', sort: true },
+          {
+              id: 'createdAt',
+              name: 'Dibuat',
+              sort: true,
+              formatter: (cell) => new Date(cell).toLocaleDateString('id-ID', {
+                  year: 'numeric', month: 'long', day: 'numeric'
+              })
+          },
+          {
+              name: 'Aksi',
+              sort: false,
+              formatter: (cell, row) => {
+                // --- PERBAIKAN UTAMA DI SINI ---
+                // Akses ID dari sel pertama (indeks 0), yang mana adalah kolom ID.
+                // Ini adalah cara yang paling andal.
+                const userId = row.cells[0].data;
+                // --- AKHIR PERBAIKAN UTAMA ---
+                
+                return html(`
+                  <div class="d-flex gap-1">
+                    <button class="btn btn-warning btn-sm btn-edit" data-id="${userId}">Edit</button>
+                    <button class="btn btn-danger btn-sm btn-delete" data-id="${userId}">Hapus</button>
+                  </div>
+                `);
+              }
+          }
+      ];
+
+  const grid = new Grid({
+        columns: gridColumns,
+      server: {
+        url: '{{ route('users.api') }}',
+        then: result => result.data.map(user => ({
+          id: user.id,
+          fullName: user.fullName,
+          username: user.username,
+          email: user.email,
+          createdAt: user.createdAt
+        })),
+        total: result => result.total
+      },
+      search: { server: { url: (prev, keyword) => `${prev}?search=${keyword}` }},
+      sort: {
+        server: {
+        url: (prev, columns) => {
+            if (!columns.length) return prev;
+            
+            const sortInfo = columns[0];
+            const columnIndex = sortInfo.index;
+            
+            // 3. Ambil konfigurasi kolom asli menggunakan index
+            const columnConfig = gridColumns[columnIndex];
+            
+            // 4. Pastikan kolom ini bisa di-sort dan memiliki id
+            if (!columnConfig || !columnConfig.sort || !columnConfig.id) {
+            return prev; // Jangan lakukan apa-apa jika kolom aksi diklik
+            }
+            
+            // 5. Ambil id dari konfigurasi, bukan dari objek sortInfo
+            const table_col = columnConfig.id;
+            const dir = sortInfo.direction === 1 ? 'asc' : 'desc';
+
+            const separator = prev.includes('?') ? '&' : '?';
+            const newUrl = prev.replace(/([?&])sort=[^&]*/g, '').replace(/([?&])direction=[^&]*/g, '');
+            return `${newUrl}${separator}sort=${table_col}&direction=${dir}`;
+        }
+        }
+    },
+      pagination: { enabled: true, limit: 10, server: true },
+      language: {
+        search: { placeholder: '🔍 Ketik untuk mencari...' },
+        pagination: {
+          previous: '⬅️', next: '➡️', showing: 'Menampilkan', results: () => 'hasil', to: 'dari', of: 'total'
+        },
+        loading: 'Memuat...', noRecordsFound: 'Tidak ada data ditemukan',
+      }
+  });
+
+  grid.render(document.getElementById('grid-wrapper'));
+
+  // ===============================================
+  // LOGIKA MODAL & FORM 
+  // ===============================================
+  const userModalEl = document.getElementById('userModal');
+  const userModal = new bootstrap.Modal(userModalEl);
+  const form = document.getElementById('user-form');
+  const modalLabel = document.getElementById('userModalLabel');
+  const passwordHelp = document.getElementById('password-help');
+  const btnSubmit = document.getElementById('btn-submit');
+
+  // --- PERBAIKAN: Buat template URL di luar event listener ---
+  const showUrlTemplate = `{{ route('users.show', { id: '__ID__' }) }}`;
+  const updateUrlTemplate = `{{ route('users.update', { id: '__ID__' }) }}`;
+  const destroyUrlTemplate = `{{ route('users.destroy', { id: '__ID__' }) }}`;
+
+  const clearForm = () => {
+    form.reset();
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+  };
+  
+  const displayErrors = (errors) => {
+    // Bersihkan error lama
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+    
+    for (const error of errors) {
+        // --- PERBAIKAN KECIL DI SINI ---
+        // Hapus konversi ke snake_case, karena nama field dari VineJS
+        // dan ID di HTML sudah cocok (camelCase).
+        const field = error.field; 
+        // --- AKHIR PERBAIKAN KECIL ---
+
+        const input = document.getElementById(field);
+        const errorDiv = document.getElementById(`${field}-error`);
+        if(input && errorDiv) {
+            input.classList.add('is-invalid');
+            errorDiv.textContent = error.message;
+        }
+    }
+  };
+
+  // Event untuk tombol "Tambah Pengguna" (tidak berubah)
+  document.getElementById('btn-add-user').addEventListener('click', () => {
+    clearForm();
+    modalLabel.textContent = 'Tambah Pengguna Baru';
+    passwordHelp.style.display = 'none';
+    document.getElementById('password').required = true;
+    form.action = '{{ route('users.store') }}';
+    userModal.show();
+  });
+
+  // Event delegation untuk tombol Edit dan Hapus di dalam grid (tidak berubah)
+  document.getElementById('grid-wrapper').addEventListener('click', async (e) => {
+      if (e.target.classList.contains('btn-edit')) {
+          const userId = e.target.dataset.id;
+          clearForm();
+          modalLabel.textContent = 'Edit Pengguna';
+          passwordHelp.style.display = 'block';
+          document.getElementById('password').required = false;
+            form.action = updateUrlTemplate.replace('__ID__', userId); 
+          
+          const fetchUrl = showUrlTemplate.replace('__ID__', userId);
+          const response = await fetch(fetchUrl);
+          const result = await response.json();
+
+          if (result.success) {
+              const user = result.data;
+              document.getElementById('user-id').value = user.id;
+              document.getElementById('fullName').value = user.fullName || '';
+              document.getElementById('username').value = user.username;
+              document.getElementById('email').value = user.email;
+              userModal.show();
+          } else {
+              Toast.fire({ icon: 'error', title: result.message });
+          }
+      }
+
+      if (e.target.classList.contains('btn-delete')) {
+          const userId = e.target.dataset.id;
+          console.log('Menghapus user dengan ID:', userId); // Debugging line
+          Swal.fire({
+              title: 'Apakah Anda yakin?',
+              text: "Data pengguna akan dihapus secara permanen!",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#d33',
+              cancelButtonColor: '#3085d6',
+              confirmButtonText: 'Ya, hapus!',
+              cancelButtonText: 'Batal'
+          }).then(async (result) => {
+              if (result.isConfirmed) {
+                  const fetchUrl = destroyUrlTemplate.replace('__ID__', userId);
+                  console.log('Mengirim permintaan DELETE ke:', fetchUrl); // Debugging line
+                  const response = await fetch(fetchUrl, {
+                      method: 'DELETE', // Method sekarang DELETE, sesuai rute
+                      headers: { 'X-CSRF-TOKEN': getCsrfToken() }
+                  });
+                  const resData = await response.json();
+                  if (resData.success) {
+                      Toast.fire({ icon: 'success', title: resData.message });
+                      grid.forceRender();
+                  } else {
+                      Toast.fire({ icon: 'error', title: resData.message });
+                  }
+              }
+          })
+      }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...`;
+
+    const formData = new FormData(form);
+    const isEdit = form.action.includes('/users/');
+    const url = form.action;
+    const method = isEdit ? 'POST' : 'POST'; // tetap POST, pakai _method untuk update
+    if (isEdit) formData.append('_method', 'PUT');
+
+    try {
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': getCsrfToken()
+                // ❌ Jangan set Content-Type kalau kirim FormData — browser akan otomatis handle boundary
+            },
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            userModal.hide();
+            Toast.fire({ icon: 'success', title: result.message });
+            grid.forceRender();
+        } else if (response.status === 422) {
+            displayErrors(result.errors);
+        } else {
+            Toast.fire({ icon: 'error', title: result.message || 'Terjadi kesalahan.' });
+        }
+
+    } catch (error) {
+        console.error(error);
+        Toast.fire({ icon: 'error', title: 'Gagal mengirim data ke server.' });
+    }
+
+    btnSubmit.disabled = false;
+    btnSubmit.innerHTML = `Simpan`;
+});
+</script>
+@endslot
 
 @end
