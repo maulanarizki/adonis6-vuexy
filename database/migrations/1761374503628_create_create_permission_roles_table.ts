@@ -1,4 +1,4 @@
-import BaseSchema from '@ioc:Adonis/Lucid/Schema'
+import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class PermissionRole extends BaseSchema {
   protected tableName = 'permission_role'
@@ -12,12 +12,7 @@ export default class PermissionRole extends BaseSchema {
         .references('id')
         .inTable('permissions')
         .onDelete('CASCADE')
-      table
-        .integer('role_id')
-        .unsigned()
-        .references('id')
-        .inTable('roles')
-        .onDelete('CASCADE')
+      table.integer('role_id').unsigned().references('id').inTable('roles').onDelete('CASCADE')
       table.unique(['permission_id', 'role_id'])
       table.timestamps(true, true) // created_at & updated_at with timezone and defaults
     })
