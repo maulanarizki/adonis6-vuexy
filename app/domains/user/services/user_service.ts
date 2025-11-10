@@ -97,7 +97,13 @@ export default class UserService {
 
   async create(data: any) {
     const payload = await createUserValidator.validate(data)
-    return User.create(payload)
+    const user = await User.create(payload)
+
+    if (data.roles) {
+      await user.related('roles').sync(data.roles)
+    }
+
+    return user
   }
 
   async update(id: number, data: any) {
@@ -105,6 +111,13 @@ export default class UserService {
     const payload = await updateUserValidator.validate(data)
     user.merge(payload)
     await user.save()
+
+    if (data.roles) {
+      await user.related('roles').sync(data.roles)
+    } else {
+      await user.related('roles').detach()
+    }
+
     return user
   }
 
